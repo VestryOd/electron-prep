@@ -1,7 +1,16 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import {
+  ApiResponse,
+  CreateNoteDto,
+  DeleteNoteDto,
+  IpcChannel,
+  Note,
+  UpdateNoteDto
+} from '../shared/ipc'
+import * as notesStore from './notesStore'
 
 function createWindow(): void {
   // Create the browser window.
@@ -48,6 +57,51 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
+
+  ipcMain.handle(IpcChannel.GetNotes, async (): Promise<ApiResponse<Note[]>> => {
+    try {
+      const notes = await notesStore.readAll()
+      return { success: true, body: notes }
+    } catch (error) {
+      return { success: false, error: (error as Error).message }
+    }
+  })
+
+  ipcMain.handle(
+    IpcChannel.CreateNote,
+    async (_, dto: CreateNoteDto): Promise<ApiResponse<Note>> => {
+      try {
+        const note = await notesStore.create(dto)
+        return { success: true, body: note }
+      } catch (error) {
+        return { success: false, error: (error as Error).message }
+      }
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannel.UpdateNote,
+    async (_, dto: UpdateNoteDto): Promise<ApiResponse<Note>> => {
+      try {
+        const note = await notesStore.update(dto)
+        return { success: true, body: note }
+      } catch (error) {
+        return { success: false, error: (error as Error).message }
+      }
+    }
+  )
+
+  ipcMain.handle(
+    IpcChannel.DeleteNote,
+    async (_, dto: DeleteNoteDto): Promise<ApiResponse<{ id: string }>> => {
+      try {
+        const result = await notesStore.remove(dto.id)
+        return { success: true, body: result }
+      } catch (error) {
+        return { success: false, error: (error as Error).message }
+      }
+    }
+  )
 
   createWindow()
 

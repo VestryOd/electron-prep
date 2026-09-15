@@ -30,11 +30,10 @@ export type DeleteNoteDto = {
   id: string
 }
 
-export type ApiResponse<T> = {
-  success: boolean
-  body: T
-  error?: string
-}
+// Discriminated union rather than `{ success: boolean; body: T; error?: string }`:
+// a failure has no meaningful T to put in `body` (e.g. T = Note has no "empty" value),
+// and this shape lets callers narrow with `if (response.success)` instead of guessing.
+export type ApiResponse<T> = { success: true; body: T } | { success: false; error: string }
 
 // Single source of truth for channel names: ipcRenderer.invoke(channel) in preload
 // and ipcMain.handle(channel) in main must reference the same string, and nothing
