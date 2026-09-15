@@ -36,6 +36,17 @@ export type ApiResponse<T> = {
   error?: string
 }
 
+// Single source of truth for channel names: ipcRenderer.invoke(channel) in preload
+// and ipcMain.handle(channel) in main must reference the same string, and nothing
+// in TypeScript checks that on its own — this object is what makes a typo a
+// compile error instead of a silent runtime mismatch.
+export const IpcChannel = {
+  GetNotes: 'notes:get',
+  CreateNote: 'notes:create',
+  UpdateNote: 'notes:update',
+  DeleteNote: 'notes:delete'
+} as const
+
 export interface NotesApi {
   getNotes: () => Promise<ApiResponse<Note[]>>
   createNote: (dto: CreateNoteDto) => Promise<ApiResponse<Note>>
