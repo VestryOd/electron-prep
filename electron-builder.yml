@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: app
+appId: com.electron.local-notes
+productName: Local Notes
 directories:
   buildResources: build
 files:
